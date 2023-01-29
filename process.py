@@ -1,6 +1,5 @@
 import pandas as pd
 
-
 from helpers.mongodb import get_mongo_client
 
 
@@ -32,15 +31,19 @@ def converter_of_discounted_price_to_tl_from_rupi(username, password, clusternam
 
     # Converting discounted prices to tl from rupi
 
-    # Extract data
+    # Extract-Transform data
     old_discounted_price_values = collection.aggregate(
         [{"$project": {"_id": 0, "old_discounted_price": {"$split": ["$discounted_price", "₹"]}}},
-         {"$unwind": {"$old_discounted_price"}},
-         {"$match": {"old_discounted_price": {"$gt": "0"}}},
-         {"$addFields": {"double_old_discounted_price": {"$toDouble": "old_discounted_price"}}},
-         {"$merge": {"into": f"{mongo_collectionname}", "whenMatched": "replace"}}])
-
-    # Transform data
+         {"$unwind": "$old_discounted_price"},
+         {"$match": {"old_discounted_price": {"$ne": ""}}},
+         {"$project": {"values": {"$convert": {"input": {
+             "$reduce": {"input": {"$split": ['$old_discounted_price', ',']}, "initialValue": '',
+                         "in": {"$concat": ['$$value', '$$this']}}}, "to": "double", "onError": 0}}}},
+         {"$addFields": {"exchange_rate_of_rupi_to_tl": 4.33}},
+         {"$project": {"_id": 0,
+                       "new_discounted_price": {"$divide": ["$values", "$exchange_rate_of_rupi_to_tl"]}}},
+         {"$merge": {"into": f"{mongo_collectionname}", "whenMatched": "replace"}}
+         ])
 
     return print("Discounted price is converted to tl from rupi")
 
@@ -57,14 +60,18 @@ def converter_of_actual_price_to_tl_from_rupi(username, password, clustername, c
 
     # Converting discounted prices to tl from rupi
 
-    # Extract data
+    # Extract-Transform data
     old_actual_price_values = collection.aggregate(
         [{"$project": {"_id": 0, "old_actual_price": {"$split": ["$actual_price", "₹"]}}},
-         {"$unwind": {"$old_actual_price"}},
-         {"$match": {"old_actual_price": {"$gt": "0"}}},
-         {"$addFields": {"double_old_actual_price": {"$toDouble": "old_actual_price"}}},
-         {"$merge": {"into": f"{mongo_collectionname}", "whenMatched": "replace"}}])
-
-    # Transform data
+         {"$unwind": "$old_actual_price"},
+         {"$match": {"old_actual_price": {"$ne": ""}}},
+         {"$project": {"values": {"$convert": {"input": {
+             "$reduce": {"input": {"$split": ['$old_actual_price', ',']}, "initialValue": '',
+                         "in": {"$concat": ['$$value', '$$this']}}}, "to": "double", "onError": 0}}}},
+         {"$addFields": {"exchange_rate_of_rupi_to_tl": 4.33}},
+         {"$project": {"_id": 0,
+                       "new_actual_price": {"$divide": ["$values", "$exchange_rate_of_rupi_to_tl"]}}},
+         {"$merge": {"into": f"{mongo_collectionname}", "whenMatched": "replace"}}
+         ])
 
     return print("Actual price is converted to tl from rupi")
