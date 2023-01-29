@@ -42,4 +42,6 @@ def converting_actual_price_to_tl_from_rupi():
         return print(str(ex))
 
 
+create_database()
 converting_discounted_price_to_tl_from_rupi()
+converting_actual_price_to_tl_from_rupi()
