@@ -17,3 +17,4 @@ def converter_of_prices_to_next_from_current(username, password, clustername, cl
     return print(
         f"{column1} and {column2} are converted to {symbol_of_new_currency} from {symbol_of_current_currency}")
 
+
