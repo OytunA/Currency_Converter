@@ -1,47 +1,66 @@
-import process
 import config
+import create_process
+import extract_and_transform_process
+import load_process
 
 
-def create_database():
+def create_database_in_mongodb():
     try:
-        our_database = process.builder_database(config.mongo_username,
-                                                config.mongo_password,
-                                                config.mongo_clustername,
-                                                config.mongo_clusterlink,
-                                                config.mongo_clientname,
-                                                config.mongo_collectionname,
-                                                config.data_path)
+        our_database = create_process.create_a_database_in_mongodb(config.mongo_username,
+                                                                   config.mongo_password,
+                                                                   config.mongo_clustername,
+                                                                   config.mongo_clusterlink,
+                                                                   config.mongo_clientname,
+                                                                   config.mongo_collectionname,
+                                                                   config.data_path, config.column_to_convert_1,
+                                                                   config.column_to_convert_2,
+                                                                   config.symbol_of_current_currency)
         return our_database
     except Exception as ex:
         return print(str(ex))
 
 
-def converting_discounted_price_to_tl_from_rupi():
+def converting_currencies():
     try:
-        converted_discounted_price = process.converter_of_discounted_price_to_tl_from_rupi(config.mongo_username,
-                                                                                           config.mongo_password,
-                                                                                           config.mongo_clustername,
-                                                                                           config.mongo_clusterlink,
-                                                                                           config.mongo_clientname,
-                                                                                           config.mongo_collectionname)
+        converted_discounted_price = extract_and_transform_process. \
+            converter_of_prices_to_next_from_current(config.mongo_username, config.mongo_password,
+                                                     config.mongo_clustername,
+                                                     config.mongo_clusterlink,
+                                                     config.mongo_clientname,
+                                                     config.mongo_collectionname, config.column_to_convert_1,
+                                                     config.column_to_convert_2, config.symbol_of_current_currency,
+                                                     config.symbol_of_new_currency,
+                                                     config.exchange_rate_current_to_new_currency)
         return converted_discounted_price
     except Exception as ex:
         return print(str(ex))
 
 
-def converting_actual_price_to_tl_from_rupi():
+def creating_database_in_google_cloud():
     try:
-        converted_actual_price = process.converter_of_actual_price_to_tl_from_rupi(config.mongo_username,
-                                                                                   config.mongo_password,
-                                                                                   config.mongo_clustername,
-                                                                                   config.mongo_clusterlink,
-                                                                                   config.mongo_clientname,
-                                                                                   config.mongo_collectionname)
-        return converted_actual_price
+        our_database = create_process.create_a_bucket_in_google_cloud(config.google_cloud_service_key,
+                                                                      config.bucket_name)
+        return our_database
     except Exception as ex:
         return print(str(ex))
 
 
-create_database()
-converting_discounted_price_to_tl_from_rupi()
-converting_actual_price_to_tl_from_rupi()
+def loading_data_to_google_cloud_from_mongodb():
+    try:
+        loading_process = load_process.loading_data_to_google_cloud_from_mongodb(config.mongo_username,
+                                                                                 config.mongo_password,
+                                                                                 config.mongo_clustername,
+                                                                                 config.mongo_clusterlink,
+                                                                                 config.mongo_clientname,
+                                                                                 config.mongo_collectionname,
+                                                                                 config.google_cloud_service_key,
+                                                                                 config.bucket_name, config.blob_name)
+        return loading_process
+    except Exception as ex:
+        return print(str(ex))
+
+
+create_database_in_mongodb()
+converting_currencies()
+creating_database_in_google_cloud()
+loading_data_to_google_cloud_from_mongodb()
